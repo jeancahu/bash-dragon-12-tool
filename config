@@ -1,0 +1,13 @@
+#!/bin/bash
+
+DIR="$HOME/.dragon_12"
+
+mkdir $DIR
+
+chmod 755 dragon_12.sh
+chmod 644 dragon_12_vars_config.sh
+
+ln dragon_12.sh $DIR
+ln dragon_12_vars_config.sh $DIR
+
+exit 0
