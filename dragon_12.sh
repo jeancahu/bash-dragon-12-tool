@@ -152,7 +152,13 @@ fi
 ## AS12
 if [ $ASSEMBLY ] && [ $FILE ] # ASSEMBLY
 then
-
+    
+    if [ ! -d $DRAGON_AS12_PATH ]
+    then
+	echo 'No such assembler program, please put your assembler directory in ~/.dragon_12'
+	exit 9
+    fi
+    
     if [ $OBJ ] && [ $LST ]
     then
 	:
@@ -325,8 +331,11 @@ fi
 if [ "$( echo $1 | tr 'A-Z' 'a-z' )" == 'simulator' ] # Open simulator
 then 
     echo 'Opening simulator'
-    cd $DRAGON_SIMULATOR_PATH  # First go where is configuration file  
-    java -jar $DRAGON_SIMULATOR # Then execute simulator
+    cd $DRAGON_SIMULATOR_PATH  # First go where is configuration file
+    if [ -f $DRAGON_SIMULATOR ]
+    then
+	java -jar $DRAGON_SIMULATOR # Then execute simulator
+    fi
     cd - # Return
 fi
 

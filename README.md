@@ -22,6 +22,7 @@ Edit your assembler program PATH in dragon\_12\_vars\_config.sh file.
 ## Uninstall:
 
 Remove script directory:
+
 	rm -ir ~/dragon_12/
 
 Delete all dragon_12 mentions in ~/.bashrc

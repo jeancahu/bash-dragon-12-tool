@@ -2,12 +2,37 @@
 
 DIR="$HOME/.dragon_12"
 
-mkdir $DIR
+if [ ! -d $HOME/.dragon_12 ]
+then
+    mkdir $DIR
+fi
 
-chmod 755 dragon_12.sh
-chmod 644 dragon_12_vars_config.sh
+if [ ! -f $HOME/.dragon_12/dragon_12_vars_config.sh ]&&[ ! -f $HOME/.dragon_12/dragon_12_vars_config.sh ]
+then
+    echo 'Hard linking files to program local directory.'
+    chmod 755 dragon_12.sh
+    chmod 644 dragon_12_vars_config.sh
+    ln dragon_12.sh $DIR
+    ln dragon_12_vars_config.sh $DIR
+fi
 
-ln dragon_12.sh $DIR
-ln dragon_12_vars_config.sh $DIR
+if [ "$1" == 'all' ]
+then
+    if [ -z "$( grep dragon_12 $HOME/.bashrc )" ]
+    then
+	echo 'Adding environment variables to .bashrc.'
+	echo 'PATH=$PATH:$HOME/.dragon_12' >> $HOME/.bashrc
+	echo 'source $HOME/.dragon_12/dragon_12_vars_config.sh' >> $HOME/.bashrc
+    else
+	echo 'Dragon 12 shell tool is already configured'
+    fi
+
+    if [ -f assembler.zip ]
+    then
+	unzip assembler.zip 
+    fi
+fi
+
+echo 'Config finished.'
 
 exit 0
