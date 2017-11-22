@@ -13,7 +13,7 @@ then
     chmod 755 dragon_12.sh
     chmod 644 dragon_12_vars_config.sh
     ln dragon_12.sh $DIR
-    ln dragon_12_vars_config.sh $DIR
+    cp dragon_12_vars_config.sh $DIR
 fi
 
 if [ "$1" == 'all' ]
@@ -29,7 +29,9 @@ then
 
     if [ -f assembler.zip ]
     then
-	unzip assembler.zip 
+	unzip assembler.zip
+	mv H* $DIR
+	mv s* $DIR
     fi
 fi
 

@@ -224,8 +224,12 @@ then
 	COUNTERS19=$(( $COUNTERS19 + 1 ))
 	sleep $DRAGON_WAIT_SEND_LINE
 	LINES19_P="$( echo $LINES19 | sed 's/^S./& /g' | sed 's/ ../& /' | sed 's/ [0-9A-F]\{4\}/& /' | sed 's/.\{3\}$/ &/' | sed 's/  / /' )"
-	DIRECTION_BEG=$(( 0X"$( echo $LINES19 | head -c 8 | tail -c 4 | tee )" ))
-	DIRECTION_END=$(( $DIRECTION_BEG + 0X"$( echo $LINES19 | head -c 4 | tail -c 2 | tee )" - 3 ))	
+	if [ "$COUNTERS19" == '1' ] && [ "48" -lt "$( echo "$LINES19_P" | wc -c )" ]
+	then		
+		LINES19_P="$( echo ${LINES19_P:0:42} ) ..."	
+	fi
+	DIRECTION_BEG=$(( 0X$( echo $LINES19 | head -c 8 | tail -c 4 | tee ) ))
+	DIRECTION_END=$(( $DIRECTION_BEG + 0X$( echo $LINES19 | head -c 4 | tail -c 2 | tee ) - 3 ))	
 	if (( $DIRECTION_END > $DRAGON_RAM_END )) || (( $DIRECTION_BEG < $DRAGON_RAM_BEG ))
 	then
 	    if [ "$( echo $LINES19 | head -c 2 )" == 'S1' ]
@@ -246,8 +250,8 @@ then
 
 	PERCENT="$( echo ' |'"$(( ${COUNTERS19}00 / $TAMS19FILE ))" | tr -d '\c' )"
 	echo -ne '                                                                   |\r'
-	echo -n "|    | % => Send : $LINES19_P"	
-	echo "$PERCENT"
+	echo -n "|    | % => Send : $LINES19_P"
+	echo -e '\r'"$PERCENT"'\r'
 
 	echo -ne ' +-----------------------------------------------------------------+\r'
 	
