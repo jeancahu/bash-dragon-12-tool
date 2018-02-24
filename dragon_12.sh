@@ -1,15 +1,27 @@
 #!/bin/bash
 
-# Programa para realizar distintas tareas sobre la tarjeta dragon-12
-# desde ensamblar, quemar, correr y ejecutar debug-12 scripting
+# Program tool to use dragon-12 with bash
+# assambly, burn, run and execute debug-12 scripting
 #
 # Jeancarlo Hidalgo U. <jeancahu@gmail.com>
 
 # Depends: screen, wine, openjdk, python
 
+## Define error codes
+
+EACNF=1  # Assambly code not found
+ELFNE=2  # List file name not specified
+EOFNNS=3 # Object file name not specified
+EMPCV=4  # PC initial value missed parameter
+ESPNWP=5 # Serial port has not write permission
+ESPNC=6  # Screen session do not exist
+EIUID=7  # Invalid user ID
+EASE=8   # Error syntax code
+EABNE=9  # Assamble program not found
+
 # FLAGS input, Args
 
-if [ "$USER" == 'root' ] ; then echo 'You can`t use root privileges with this program' >&2 ; exit 7 ; fi
+if [ "$USER" == 'root' ] ; then echo 'You can`t use root privileges with this program' >&2 ; exit $EIUID ; fi
 
 FLAGS=$( echo $* | grep -o '^-[a-zCS]*' )
 FLAGS=$FLAGS$( echo $* | grep -o ' -[a-zCS]*' )
@@ -88,7 +100,7 @@ then
 	    or
 	    $ sudo chown $USER $DRAGON_SERIAL_PORT
        	other option is edit your UDEV rules to allow non-root access to serial devices permanently" >&2
-	exit 5
+	exit $ESPNWP
     else
 	:
     fi
@@ -111,7 +123,7 @@ then
 	:
     else
 	echo 'File don`t exist or format is not correct.' >&2
-	exit 1
+	exit $EACNF
     fi
 
     echo "Input file: $IFILE"
@@ -124,7 +136,7 @@ then
     if [ -z "$LFILE" ]
     then
 	echo 'File out list need have .lst suffix.' >&2
-	exit 2
+	exit $ELFNE
     else
 	:
     fi
@@ -140,7 +152,7 @@ then
     if [ -z "$OFILE" ]
     then
 	echo 'File out object don`t exist or need have .s19 suffix.' >&2
-	exit 3
+	exit $EOFNNS
     else
 	:
     fi
@@ -156,7 +168,7 @@ then
     if [ ! -d $DRAGON_AS12_PATH ]
     then
 	echo 'No such assembler program, please put your assembler directory in ~/.dragon_12'
-	exit 9
+	exit $EABNE
     fi
     
     if [ $OBJ ] && [ $LST ]
@@ -189,7 +201,7 @@ then
     $DRAGON_AS results log: "
     cat $LOGFILE
 
-    if [ -z "$( grep 'Total errors: 0' $LOGFILE )" ] ; then exit 8 ; fi
+    if [ -z "$( grep 'Total errors: 0' $LOGFILE )" ] ; then exit $EASE ; fi
     
 elif [ $ASSEMBLY ]
 then
@@ -203,7 +215,7 @@ then
     echo 'First run on a new bash child process or terminal
     $'" $( echo $0 | grep -o [a-z0-9A-Z_\.-]*$ )"' -S
 to create a TTY serial device access' >&2
-    exit 6
+    exit $ESPNC
 fi
 ##
 
@@ -274,7 +286,7 @@ then
     if [ -z "$INITIAL_PC" ]
     then
 	echo 'You have to insert PC inital value next to the -g flag' >&2
-	exit 4
+	exit $EMPCV
     else
 	:
     fi

@@ -7,7 +7,7 @@ then
     mkdir $DIR
 fi
 
-if [ ! -f $HOME/.dragon_12/dragon_12_vars_config.sh ]&&[ ! -f $HOME/.dragon_12/dragon_12_vars_config.sh ]
+if [ ! -f $HOME/.dragon_12/dragon_12.sh ]&&[ ! -f $HOME/.dragon_12/dragon_12_vars_config.sh ]
 then
     echo 'Hard linking files to program local directory.'
     chmod 755 dragon_12.sh
