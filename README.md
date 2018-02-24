@@ -9,7 +9,7 @@ Depends: screen, wine
 
 Run next bash script on repository directory.
 
-    ./config
+    git clone https://github.com/jeancahu/bash-dragon-12-tool.git ~/.dragon_12
 	
 Add ~/.dragon\_12 directory to PATH environment variable.
 
@@ -25,6 +25,6 @@ Edit your assembler program PATH in dragon\_12\_vars\_config.sh file.
 
 Remove script directory:
 
-	rm -ir ~/dragon_12/
+	rm -ir ~/.dragon_12/
 
 Delete all dragon_12 mentions in ~/.bashrc
