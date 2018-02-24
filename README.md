@@ -7,7 +7,7 @@ Depends: screen, wine
 
 ## Install:
 
-Run next bash script on repository directory.
+First clone the repository directory.
 
     git clone https://github.com/jeancahu/bash-dragon-12-tool.git ~/.dragon_12
 	
