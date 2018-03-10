@@ -1,6 +1,7 @@
 #!/bin/bash
 
 DIR="$HOME/.dragon_12"
+source ./dragon_12_vars_config.sh
 
 if [ ! -d $HOME/.dragon_12 ]
 then
@@ -32,6 +33,31 @@ then
 	unzip assembler.zip
 	mv H* $DIR
 	mv s* $DIR
+    fi
+fi
+
+if [ ! -d $DRAGON_AS12_PATH/ ]
+then
+    mkdir $DRAGON_AS12_PATH/
+fi
+
+if [ ! -f $DRAGON_AS12_PATH/$DRAGON_AS ]
+then
+    cd $DRAGON_AS12_PATH/
+    wget 'http://dankohn.info/projects/68HC11/AsmIDE/asmide340.zip'
+    if [ -f asmide340.zip ]
+       then
+	   unzip asmide340.zip
+	   rm asmide340.zip
+	   cd -
+	   if [ "$( md5sum $DRAGON_AS12_PATH/$DRAGON_AS | cut --delimiter=' ' -f 1 )" == '620981d0329aaae115dadb5203356e5b' ]
+	   then
+	       echo 'as12.exe installed in'" $DRAGON_AS12_PATH"
+	   else
+	       echo ''
+	   fi
+    else
+	echo -e "Error \x27http://dankohn.info/projects/68HC11/AsmIDE/asmide340.zip\x27 not found" >&2
     fi
 fi
 

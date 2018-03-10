@@ -13,3 +13,4 @@ export DRAGON_SIMULATOR_PATH="$HOME/.dragon_12/simulator"
 export DRAGON_SIMULATOR=Micro.jar
 export DRAGON_WAIT_SEND_LINE=0.04
 export DRAGON_WAIT_COMMAND=0.30
+export DRAGON_COLOR="True"
