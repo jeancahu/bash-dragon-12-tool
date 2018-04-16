@@ -11,28 +11,28 @@ source $HOME/.dragon_12/dragon_12_vars_config.sh 2>/dev/null || { echo 'Need con
 
 ## Define error codes
 
-EACNF=1  # Assambly code not found
-ELFNE=2  # List file name not specified
-EOFNNS=3 # Object file name not specified
-EMPCV=4  # PC initial value missed parameter
-ESPNWP=5 # Serial port has not write permission
-ESPNC=6  # Screen session do not exist
-EIUID=7  # Invalid user ID
-EASE=8   # Error syntax code
-EABNE=9  # Assamble program not found
-EFNR=10  # Flag has not been recognized
+declare -ir EACNF=1  # Assambly code not found
+declare -ir ELFNE=2  # List file name not specified
+declare -ir EOFNNS=3 # Object file name not specified
+declare -ir EMPCV=4  # PC initial value missed parameter
+declare -ir ESPNWP=5 # Serial port has not write permission
+declare -ir ESPNC=6  # Screen session do not exist
+declare -ir EIUID=7  # Invalid user ID
+declare -ir EASE=8   # Error syntax code
+declare -ir EABNE=9  # Assamble program not found
+declare -ir EFNR=10  # Flag has not been recognized
 
 ## Define ANSI colors
 if [ "$DRAGON_COLOR" == 'True' ]
    then
-       ANSI_BLUE='\033[1;34m'
-       ANSI_DARK_GREEN='\033[0;32m'
-       ANSI_GREEN='\033[1;32m'
-       ANSI_RED='\033[1;31m'
-       ANSI_DARK_PURPLE='\033[0;35m'
-       ANSI_PURPLE='\033[1;35m'
-       ANSI_YELLOW='\033[1;33m'
-       ANSI_NOCOLOR='\033[0m'
+       declare -r ANSI_BLUE='\033[1;34m'
+       declare -r ANSI_DARK_GREEN='\033[0;32m'
+       declare -r ANSI_GREEN='\033[1;32m'
+       declare -r ANSI_RED='\033[1;31m'
+       declare -r ANSI_DARK_PURPLE='\033[0;35m'
+       declare -r ANSI_PURPLE='\033[1;35m'
+       declare -r ANSI_YELLOW='\033[1;33m'
+       declare -r ANSI_NOCOLOR='\033[0m'
 fi
 
 ## Define BASH functions
@@ -76,7 +76,7 @@ Report bugs to: Jeancarlo Hidalgo U. <jeancahu@gmail.com>'
 
 # FLAGS input, Args
 
-if [ "$USER" == 'root' ] ; then echo_error 'You can`t use root privileges with this program' ; exit $EIUID ; fi
+if [ "$USER" == 'root' ] ; then echo_error 'You can\x27t use root privileges with this program' ; exit $EIUID ; fi
 
 FLAGS=$( echo $* | grep -o '^-[a-zCS]*' )
 FLAGS=$FLAGS$( echo $* | grep -o ' -[a-zCS]*' )
@@ -161,7 +161,7 @@ then
     then
 	:
     else
-	echo_error 'File don`t exist or format is not correct'
+	echo_error 'File don\x27t exist or format is not correct, need to have \x27.asm\x27 suffix'
 	exit $EACNF
     fi
 
@@ -174,7 +174,7 @@ then
 
     if [ -z "$LFILE" ]
     then
-	echo_error 'File out list need have .lst suffix'
+	echo_error 'File out list need have \x27.lst\x27 suffix'
 	exit $ELFNE
     else
 	:
@@ -190,7 +190,7 @@ then
 
     if [ -z "$OFILE" ]
     then
-	echo_error 'File out object don`t exist or need have .s19 suffix'
+	echo_error 'Object out file need have \x27.s19\x27 suffix'
 	exit $EOFNNS
     else
 	:
@@ -387,7 +387,8 @@ case $( echo $1 | tr 'A-Z' 'a-z' ) in
 	cd $DRAGON_SIMULATOR_PATH  # First go where is configuration file
 	if [ -f $DRAGON_SIMULATOR ]
 	then
-	    java -jar $DRAGON_SIMULATOR # Then execute simulator
+	    which java && java -jar $DRAGON_SIMULATOR # Then execute simulator
+	    test $? -eq 0 || echo_warning 'Java no found'
 	fi
 	cd - # Return
 	;;
