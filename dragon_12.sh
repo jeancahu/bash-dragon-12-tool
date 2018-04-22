@@ -35,6 +35,21 @@ if [ "$DRAGON_COLOR" == 'True' ]
        declare -r ANSI_NOCOLOR='\033[0m'
 fi
 
+## Define box variables
+
+declare -r TL_COR='\u250F'
+declare -r TR_COR='\u2513'
+declare -r BL_COR='\u2517'
+declare -r BR_COR='\u251B'
+declare -r INTE_L='\u2523'
+declare -r INTE_R='\u252B'
+declare -r INTE_T='\u2533'
+declare -r INTE_B='\u253B'
+declare -r H_LINE0="$( for N in {0..64} ; do printf '\u2501' ; done )"
+declare -r H_LINE1="${H_LINE0:0:3}$INTE_T${H_LINE0:4}"
+declare -r H_LINE2="${H_LINE0:0:3}$INTE_B${H_LINE0:4}"
+declare -r V_LINE='\u2503'
+
 ## Define BASH functions
 
 function echo_error ()
@@ -156,7 +171,7 @@ fi
 
 if [ $FILE ] # FILE.asm
 then
-    IFILE="$( echo $* | grep -o '\-[a-z]\{0,\}f [\#0-9a-zA-Z\.\_\ -]*\.asm' | cut --delimiter=' ' -f 2- )"
+    IFILE="$( echo $* | grep -o '\-[a-z]\{0,\}f [\#0-9a-zA-Z/\.\_\ -]*\.asm' | cut --delimiter=' ' -f 2- )"
     if [ -e "$IFILE" ]
     then
 	:
@@ -170,7 +185,7 @@ fi
 
 if [ $LST ] # FILE.lst
 then
-    LFILE="$( echo $* | grep -o '\-[a-z]\{0,\}l [0-9a-zA-Z\.\_\ -]*\.lst' | cut --delimiter=' ' -f 2- )"    
+    LFILE="$( echo $* | grep -o '\-[a-z]\{0,\}l [0-9a-zA-Z/\.\_\ -]*\.lst' | cut --delimiter=' ' -f 2- )"    
 
     if [ -z "$LFILE" ]
     then
@@ -186,7 +201,7 @@ fi
 
 if [ $OBJ ] # FILE.s19
 then
-    OFILE="$( echo $* | grep -o '\-[a-z]\{0,\}o [0-9a-zA-Z\.\_\ -]*\.s19' | cut --delimiter=' ' -f 2- )"    
+    OFILE="$( echo $* | grep -o '\-[a-z]\{0,\}o [0-9a-zA-Z/\.\_\ -]*\.s19' | cut --delimiter=' ' -f 2- )"    
 
     if [ -z "$OFILE" ]
     then
@@ -261,10 +276,10 @@ fi
 
 if [ $BURN ] && [ $OFILE ] # Load program on Dragon_12 board
 then
-    echo -e "$ANSI_YELLOW"'
- +-----------------------------------------------------------------+
- |   '"$ANSI_GREEN"'Burn Dragon 12 board with '"$OFILE : $ANSI_YELLOW"'	                   |
- +-----------------------------------------------------------------+'"$ANSI_NOCOLOR"
+    echo -e "$ANSI_YELLOW
+ $TL_COR$H_LINE0$TR_COR
+ $V_LINE   $ANSI_GREEN"'Burn Dragon 12 board with '"$( rev <<< $OFILE | cut -f 1 --delimiter='/' | rev ) : $ANSI_YELLOW	                   $V_LINE
+ $INTE_L$H_LINE1$INTE_R$ANSI_NOCOLOR"
     screen -S $DRAGON_SESSION_NAME -X stuff 'load\r'
     TAMS19FILE=$( wc $OFILE | sed 's/ * / /g' | cut -f 2 --delimiter=' ' )    
     COUNTERS19=0
@@ -285,7 +300,7 @@ then
 	then
 	    if [ "$( echo $LINES19 | head -c 2 )" == 'S1' ]
 	    then
-		echo -e "$ANSI_YELLOW"' +-----------------------------------------------------------------+'"$ANSI_NOCOLOR"
+		echo -e "$ANSI_YELLOW"' +$H_LINE2+'"$ANSI_NOCOLOR"
 		echo -en '    '"$ANSI_YELLOW"'WARNING: Direction is out of RAM range\n    You really want to flash that space? [yes/NO] '"$ANSI_NOCOLOR"		
 		read CMD		
 		if [ "$( echo $CMD | tr 'A-Z' 'a-z' )" == 'yes' ]
@@ -295,20 +310,20 @@ then
 		    screen -S $DRAGON_SESSION_NAME -X stuff "$( echo S9030000FC )"
 		    exit 0 # That is not an error, it is an option, stop burning
 		fi
-		echo -e "$ANSI_YELLOW"' +-----------------------------------------------------------------+'"$ANSI_NOCOLOR"
+		echo -e "$ANSI_YELLOW $BL_COR$H_LINE2$BR_COR$ANSI_NOCOLOR"
 	    fi
 	fi
 
-	PERCENT="$( echo ' |'"$(( ${COUNTERS19}00 / $TAMS19FILE ))" | tr -d '\c' )"
-	echo -ne '                                                                   '"$ANSI_YELLOW"'|'"$ANSI_NOCOLOR"'\r'
-	echo -ne "|    $ANSI_YELLOW""|""$ANSI_NOCOLOR % => $ANSI_PURPLE""Send""$ANSI_NOCOLOR : $ANSI_BLUE""$LINES19_P""$ANSI_NOCOLOR"
+	PERCENT="$( echo " $V_LINE$(( ${COUNTERS19}00 / $TAMS19FILE ))" | tr -d '\c' )"
+	echo -ne '                                                                   '"$ANSI_YELLOW$V_LINE$ANSI_NOCOLOR"'\r'
+	echo -ne "$V_LINE    $ANSI_YELLOW$V_LINE$ANSI_NOCOLOR % => $ANSI_PURPLE""Send""$ANSI_NOCOLOR : $ANSI_BLUE""$LINES19_P""$ANSI_NOCOLOR"
 	echo -e '\r'"$ANSI_YELLOW""$PERCENT"'\r'
 
-	echo -ne "$ANSI_YELLOW"' +-----------------------------------------------------------------+'"$ANSI_NOCOLOR"'\r'
+	echo -ne "$ANSI_YELLOW $BL_COR$H_LINE2$BR_COR$ANSI_NOCOLOR"'\r'
 	
 	screen -S $DRAGON_SESSION_NAME -X stuff "$( echo $LINES19 | tr -d '\r' )"
     done
-    echo -e "$ANSI_YELLOW"' +-----------------------------------------------------------------+'"$ANSI_NOCOLOR"
+    echo -e "$ANSI_YELLOW $BL_COR$H_LINE2$BR_COR$ANSI_NOCOLOR"
     screen -S $DRAGON_SESSION_NAME -X stuff '\n\n\n\n\n' # Send a newline char
 elif [ $BURN ]
      then
