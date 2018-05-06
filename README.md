@@ -36,6 +36,8 @@ Remove script directory:
 |-c		[STRING]| Send a char/string to serial TTY. This does not permit spaces, all string is concatenated. <br/> Control chars are: <br/>-S Space <br/> -R CarrieReturn|
 |-C|Send a char/string to serial TTY. This does permit spaces. <br/>Control chars are: <br/>-S Space <br/>-R CarrieReturn <br/> -E Exit loop|
 | -S |	Open TTY serial access to communicate with board through Terminal|
+
+
 First, open a terminal to communicate over RS232 with the board.
 
     dragon_12.sh -S
