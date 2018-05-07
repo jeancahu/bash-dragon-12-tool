@@ -136,7 +136,7 @@ if (( $( grep -c 'S' <<< "$FLAGS" ) )); then INIT_TTY=true  ; fi
 
 if [ $( sed 's/[hflogabcCS-]//g;s/ //g' <<< "$FLAGS" ) ]
 then
-    echo_error "The expression $( echo $FLAGS | sed 's/[hflogabcCS]//g;s/- //g' ) has not been recognized"
+    echo_error "The expression $( sed 's/[hflogabcCS]//g;s/- //g' <<< $FLAGS ) has not been recognized"
     exit $EFNR
 elif [ $( grep -o '\- ' <<< "$FLAGS" | head -c 1 ) ] || [ $( grep -o '\-$' <<< "$FLAGS" | head -c 1 ) ]
 then
@@ -238,16 +238,16 @@ then
 	:
     elif [ $OBJ ]
     then	
-	LFILE=$( echo "$IFILE" | sed s/\.asm/\.lst/ )
+	LFILE=$( sed s/\.asm/\.lst/ <<< "$IFILE" )
     elif [ $LST ]
     then
-	OFILE=$( echo "$IFILE" | sed s/\.asm/\.s19/ )	
+	OFILE=$( sed s/\.asm/\.s19/ <<< "$IFILE" )	
     else
-	LFILE=$( echo "$IFILE" | sed s/\.asm/\.lst/ )
-	OFILE=$( echo "$IFILE" | sed s/\.asm/\.s19/ )	
+	LFILE=$( sed s/\.asm/\.lst/ <<< "$IFILE" )
+	OFILE=$( sed s/\.asm/\.s19/ <<< "$IFILE" )	
     fi
 
-    export LOGFILE=$( echo "$IFILE" | sed s/\.asm/\.log/ )    
+    export LOGFILE=$( sed s/\.asm/\.log/ <<< "$IFILE" )
 
     echo "$( date )" > $LOGFILE
     echo "
@@ -293,21 +293,21 @@ then
     do
 	COUNTERS19=$(( $COUNTERS19 + 1 ))
 	sleep $DRAGON_WAIT_SEND_LINE
-	LINES19_P="$( echo $LINES19 | sed 's/^S./& /g' | sed 's/ ../& /' | sed 's/ [0-9A-F]\{4\}/& /' | sed 's/.\{3\}$/ &/' | sed 's/  / /' )"
+	LINES19_P="$( sed 's/^S./& /g;s/ ../& /;s/ [0-9A-F]\{4\}/& /;s/.\{3\}$/ &/;s/  / /' <<< $LINES19 )"
 	if [ "$COUNTERS19" == '1' ] && [ "48" -lt "$( echo "$LINES19_P" | wc -c )" ]
 	then		
-		LINES19_P="$( echo ${LINES19_P:0:42} ) ..."	
+		LINES19_P="${LINES19_P:0:42} ..."	
 	fi
-	DIRECTION_BEG=$(( 0X$( echo $LINES19 | head -c 8 | tail -c 4 | tee ) ))
-	DIRECTION_END=$(( $DIRECTION_BEG + 0X$( echo $LINES19 | head -c 4 | tail -c 2 | tee ) - 3 ))	
+	DIRECTION_BEG=$(( 0X${LINES19:4:4} ))
+	DIRECTION_END=$(( $DIRECTION_BEG + 0X${LINES19:2:2} - 3 ))	
 	if (( $DIRECTION_END > $DRAGON_RAM_END )) || (( $DIRECTION_BEG < $DRAGON_RAM_BEG ))
 	then
-	    if [ "$( echo $LINES19 | head -c 2 )" == 'S1' ]
+	    if [ "${LINES19:0:2}" == 'S1' ]
 	    then
 		echo -e "$ANSI_YELLOW"' +$H_LINE2+'"$ANSI_NOCOLOR"
 		echo -en '    '"$ANSI_YELLOW"'WARNING: Direction is out of RAM range\n    You really want to flash that space? [yes/NO] '"$ANSI_NOCOLOR"		
 		read CMD		
-		if [ "$( echo $CMD | tr 'A-Z' 'a-z' )" == 'yes' ]
+		if [ "${CMD,,}" == 'yes' ]
 		then
 		    :
 		else		    
@@ -374,7 +374,7 @@ then
     do
 	sleep $DRAGON_WAIT_COMMAND
 	screen -S $DRAGON_SESSION_NAME -X stuff "$( echo $TEMP_STRING | tr '@' '\r' | tr 'S' ' ' )"
-	echo " $( echo $TEMP_STRING | sed 's/@/ %CARRIERETURN% /g' | sed 's/S/ %SPACE% /g' ) => $DRAGON_SESSION_NAME"	
+	echo " $( sed 's/@/ %CARRIERETURN% /g' <<< $TEMP_STRING | sed 's/S/ %SPACE% /g' ) => $DRAGON_SESSION_NAME"	
     done
 fi
 
@@ -385,15 +385,15 @@ then
     do
     	echo -n "    Insert the string/char => "
 	read CHAR
-	CHAR=$( echo $CHAR | sed 's/ * / /g' | sed 's/ R /R/g' | tr ' ' 'S' )
+	CHAR=$( sed 's/ * / /g;s/ R /R/g' <<< $CHAR | tr ' ' 'S' )
 	
 	if [ "$CHAR" == 'E' ] ; then exit 0 ; fi     
 
-	    for TEMP_STRING in $( echo $CHAR | sed 's/R/@R/g' | tr 'R' '\n' )
+	    for TEMP_STRING in $( sed 's/R/@R/g' <<< $CHAR | tr 'R' '\n' )
 	    do
 		sleep $DRAGON_WAIT_COMMAND
 		screen -S $DRAGON_SESSION_NAME -X stuff "$( echo $TEMP_STRING | tr '@' '\r' | tr 'S' ' ' )"
-		echo " $( echo $TEMP_STRING | sed 's/@/ %CARRIERETURN% /g' | sed 's/S/ %SPACE% /g' ) => $DRAGON_SESSION_NAME"	
+		echo " $( sed 's/@/ %CARRIERETURN% /g;s/S/ %SPACE% /g' <<< $TEMP_STRING ) => $DRAGON_SESSION_NAME"	
 	    done
     done
 fi
