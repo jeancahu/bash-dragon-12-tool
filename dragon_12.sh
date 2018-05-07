@@ -5,7 +5,11 @@
 #
 # Jeancarlo Hidalgo U. <jeancahu@gmail.com>
 
-# Depends: screen, wine, openjdk, python, as12.exe
+# Depends: screen, wine, as12.exe
+
+## Declare configuration variables
+
+declare -l DRAGON_COLOR
 
 source $HOME/.dragon_12/dragon_12_vars_config.sh 2>/dev/null || { echo 'Need configure' ; exit 0 ;}
 
@@ -23,7 +27,7 @@ declare -ir EABNE=9  # Assamble program not found
 declare -ir EFNR=10  # Flag has not been recognized
 
 ## Define ANSI colors
-if [ "$DRAGON_COLOR" == 'True' ]
+if [ "$DRAGON_COLOR" == 'true' ]
    then
        declare -r ANSI_BLUE='\033[1;34m'
        declare -r ANSI_DARK_GREEN='\033[0;32m'
@@ -93,48 +97,52 @@ Report bugs to: Jeancarlo Hidalgo U. <jeancahu@gmail.com>'
 
 if [ "$USER" == 'root' ] ; then echo_error 'You can\x27t use root privileges with this program' ; exit $EIUID ; fi
 
-FLAGS=$( echo $* | grep -o '^-[a-zCS]*' )
-FLAGS=$FLAGS$( echo $* | grep -o ' -[a-zCS]*' )
+FLAGS=$( grep -o '^-[a-zA-Z0-9]*' <<< "$*" )
+FLAGS=$FLAGS$( grep -o ' -[a-zA-Z0-9]*' <<< "$*" )
 
 ## Define flags/modes
 
-HELP=''      #false
-FILE=''      #false
-LST=''       #false
-OBJ=''       #false
-ASSEMBLY=''  #false
-BURN=''      #false
-RUN=''       #false
-SENDCHAR=''  #false
-SCHARLOOP='' #false
-INIT_TTY=''  #false
+declare -l HELP      #false
+declare -l FILE      #false
+declare -l LST       #false
+declare -l OBJ       #false
+declare -l ASSEMBLY  #false
+declare -l BURN      #false
+declare -l RUN       #false
+declare -l SENDCHAR  #false
+declare -l SCHARLOOP #false
+declare -l INIT_TTY  #false
 
 ## Define vars
 
-IFILE=''
-OFILE='' # File.asm name
-LFILE=''
+declare -x IFILE=''      # Input file path
+declare -x OFILE=''      # File.s19 name
+declare -x LFILE=''      # File.lst name
+
+declare -l SUB_COMM="$1" # Sub command
 
 ## Verify flags
 
-if [ "$( echo $FLAGS | grep -o 'h' | head -c 1 )" == "h" ]; then HELP=true      ; fi
-if [ "$( echo $FLAGS | grep -o 'f' | head -c 1 )" == "f" ]; then FILE=true      ; fi
-if [ "$( echo $FLAGS | grep -o 'l' | head -c 1 )" == "l" ]; then LST=true       ; fi
-if [ "$( echo $FLAGS | grep -o 'o' | head -c 1 )" == "o" ]; then OBJ=true       ; fi
-if [ "$( echo $FLAGS | grep -o 'g' | head -c 1 )" == "g" ]; then RUN=true       ; fi
-if [ "$( echo $FLAGS | grep -o 'a' | head -c 1 )" == "a" ]; then ASSEMBLY=true  ; fi
-if [ "$( echo $FLAGS | grep -o 'b' | head -c 1 )" == "b" ]; then BURN=true      ; fi
-if [ "$( echo $FLAGS | grep -o 'c' | head -c 1 )" == "c" ]; then SENDCHAR=true  ; fi
-if [ "$( echo $FLAGS | grep -o 'C' | head -c 1 )" == "C" ]; then SCHARLOOP=true ; fi
-if [ "$( echo $FLAGS | grep -o 'S' | head -c 1 )" == "S" ]; then INIT_TTY=true  ; fi
+if (( $( grep -c 'h' <<< "$FLAGS" ) )); then HELP=true      ; fi
+if (( $( grep -c 'f' <<< "$FLAGS" ) )); then FILE=true      ; fi
+if (( $( grep -c 'l' <<< "$FLAGS" ) )); then LST=true       ; fi
+if (( $( grep -c 'o' <<< "$FLAGS" ) )); then OBJ=true       ; fi
+if (( $( grep -c 'g' <<< "$FLAGS" ) )); then RUN=true       ; fi
+if (( $( grep -c 'a' <<< "$FLAGS" ) )); then ASSEMBLY=true  ; fi
+if (( $( grep -c 'b' <<< "$FLAGS" ) )); then BURN=true      ; fi
+if (( $( grep -c 'c' <<< "$FLAGS" ) )); then SENDCHAR=true  ; fi
+if (( $( grep -c 'C' <<< "$FLAGS" ) )); then SCHARLOOP=true ; fi
+if (( $( grep -c 'S' <<< "$FLAGS" ) )); then INIT_TTY=true  ; fi
 
-if [ "$( echo $FLAGS | sed 's/[hflogabcCS-]//g;s/ //g' )" ]
+if [ $( sed 's/[hflogabcCS-]//g;s/ //g' <<< "$FLAGS" ) ]
 then
-    echo_error "The expression $( echo $FLAGS | sed 's/[hflogabcCS]//g;s/- //g' ) has not been recognized"
+    echo_error "The expression $( sed 's/[hflogabcCS]//g;s/- //g' <<< $FLAGS ) has not been recognized"
+    exit $EFNR
+elif [ $( grep -o '\- ' <<< "$FLAGS" | head -c 1 ) ] || [ $( grep -o '\-$' <<< "$FLAGS" | head -c 1 ) ]
+then
+    echo_error 'There is a missing flag parameter'
     exit $EFNR
 fi
-
-#echo $ASSEMBLY $BURN $RUN $FILE $OBJ $LST $HELP
 
 ## Child process:
 
@@ -153,7 +161,7 @@ then
 	    $ sudo chmod 0666 $DRAGON_SERIAL_PORT
 	    or
 	    $ sudo chown $USER $DRAGON_SERIAL_PORT
-       	other option is edit your UDEV rules to allow non-root access to serial devices permanently"
+       	other option is edit your UDEV rules to allow non-root access to fake serial devices permanently"
 	exit $ESPNWP
     else
 	:
@@ -230,19 +238,16 @@ then
 	:
     elif [ $OBJ ]
     then	
-	LFILE=$( echo "$IFILE" | sed s/\.asm/\.lst/ )
+	LFILE=$( sed s/\.asm/\.lst/ <<< "$IFILE" )
     elif [ $LST ]
     then
-	OFILE=$( echo "$IFILE" | sed s/\.asm/\.s19/ )	
+	OFILE=$( sed s/\.asm/\.s19/ <<< "$IFILE" )	
     else
-	LFILE=$( echo "$IFILE" | sed s/\.asm/\.lst/ )
-	OFILE=$( echo "$IFILE" | sed s/\.asm/\.s19/ )	
+	LFILE=$( sed s/\.asm/\.lst/ <<< "$IFILE" )
+	OFILE=$( sed s/\.asm/\.s19/ <<< "$IFILE" )	
     fi
 
-    export IFILE
-    export OFILE
-    export LFILE    
-    export LOGFILE=$( echo "$IFILE" | sed s/\.asm/\.log/ )    
+    export LOGFILE=$( sed s/\.asm/\.log/ <<< "$IFILE" )
 
     echo "$( date )" > $LOGFILE
     echo "
@@ -273,7 +278,6 @@ to create a TTY serial device access'
 fi
 ##
 
-
 if [ $BURN ] && [ $OFILE ] # Load program on Dragon_12 board
 then
     echo -e "$ANSI_YELLOW
@@ -289,21 +293,21 @@ then
     do
 	COUNTERS19=$(( $COUNTERS19 + 1 ))
 	sleep $DRAGON_WAIT_SEND_LINE
-	LINES19_P="$( echo $LINES19 | sed 's/^S./& /g' | sed 's/ ../& /' | sed 's/ [0-9A-F]\{4\}/& /' | sed 's/.\{3\}$/ &/' | sed 's/  / /' )"
+	LINES19_P="$( sed 's/^S./& /g;s/ ../& /;s/ [0-9A-F]\{4\}/& /;s/.\{3\}$/ &/;s/  / /' <<< $LINES19 )"
 	if [ "$COUNTERS19" == '1' ] && [ "48" -lt "$( echo "$LINES19_P" | wc -c )" ]
 	then		
-		LINES19_P="$( echo ${LINES19_P:0:42} ) ..."	
+		LINES19_P="${LINES19_P:0:42} ..."	
 	fi
-	DIRECTION_BEG=$(( 0X$( echo $LINES19 | head -c 8 | tail -c 4 | tee ) ))
-	DIRECTION_END=$(( $DIRECTION_BEG + 0X$( echo $LINES19 | head -c 4 | tail -c 2 | tee ) - 3 ))	
+	DIRECTION_BEG=$(( 0X${LINES19:4:4} ))
+	DIRECTION_END=$(( $DIRECTION_BEG + 0X${LINES19:2:2} - 3 ))	
 	if (( $DIRECTION_END > $DRAGON_RAM_END )) || (( $DIRECTION_BEG < $DRAGON_RAM_BEG ))
 	then
-	    if [ "$( echo $LINES19 | head -c 2 )" == 'S1' ]
+	    if [ "${LINES19:0:2}" == 'S1' ]
 	    then
 		echo -e "$ANSI_YELLOW"' +$H_LINE2+'"$ANSI_NOCOLOR"
 		echo -en '    '"$ANSI_YELLOW"'WARNING: Direction is out of RAM range\n    You really want to flash that space? [yes/NO] '"$ANSI_NOCOLOR"		
 		read CMD		
-		if [ "$( echo $CMD | tr 'A-Z' 'a-z' )" == 'yes' ]
+		if [ "${CMD,,}" == 'yes' ]
 		then
 		    :
 		else		    
@@ -370,7 +374,7 @@ then
     do
 	sleep $DRAGON_WAIT_COMMAND
 	screen -S $DRAGON_SESSION_NAME -X stuff "$( echo $TEMP_STRING | tr '@' '\r' | tr 'S' ' ' )"
-	echo " $( echo $TEMP_STRING | sed 's/@/ %CARRIERETURN% /g' | sed 's/S/ %SPACE% /g' ) => $DRAGON_SESSION_NAME"	
+	echo " $( sed 's/@/ %CARRIERETURN% /g' <<< $TEMP_STRING | sed 's/S/ %SPACE% /g' ) => $DRAGON_SESSION_NAME"	
     done
 fi
 
@@ -381,22 +385,22 @@ then
     do
     	echo -n "    Insert the string/char => "
 	read CHAR
-	CHAR=$( echo $CHAR | sed 's/ * / /g' | sed 's/ R /R/g' | tr ' ' 'S' )
+	CHAR=$( sed 's/ * / /g;s/ R /R/g' <<< $CHAR | tr ' ' 'S' )
 	
 	if [ "$CHAR" == 'E' ] ; then exit 0 ; fi     
 
-	    for TEMP_STRING in $( echo $CHAR | sed 's/R/@R/g' | tr 'R' '\n' )
+	    for TEMP_STRING in $( sed 's/R/@R/g' <<< $CHAR | tr 'R' '\n' )
 	    do
 		sleep $DRAGON_WAIT_COMMAND
 		screen -S $DRAGON_SESSION_NAME -X stuff "$( echo $TEMP_STRING | tr '@' '\r' | tr 'S' ' ' )"
-		echo " $( echo $TEMP_STRING | sed 's/@/ %CARRIERETURN% /g' | sed 's/S/ %SPACE% /g' ) => $DRAGON_SESSION_NAME"	
+		echo " $( sed 's/@/ %CARRIERETURN% /g;s/S/ %SPACE% /g' <<< $TEMP_STRING ) => $DRAGON_SESSION_NAME"	
 	    done
     done
 fi
 
 ## Main process, subcommands
 
-case $( echo $1 | tr 'A-Z' 'a-z' ) in
+case $SUB_COMM in
     simulator) # Open simulator
 	echo 'Opening simulator'
 	cd $DRAGON_SIMULATOR_PATH  # First go where is configuration file
