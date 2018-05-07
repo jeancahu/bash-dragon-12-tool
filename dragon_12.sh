@@ -5,7 +5,11 @@
 #
 # Jeancarlo Hidalgo U. <jeancahu@gmail.com>
 
-# Depends: screen, wine, openjdk, python, as12.exe
+# Depends: screen, wine, as12.exe
+
+## Declare configuration variables
+
+declare -l DRAGON_COLOR
 
 source $HOME/.dragon_12/dragon_12_vars_config.sh 2>/dev/null || { echo 'Need configure' ; exit 0 ;}
 
@@ -23,7 +27,7 @@ declare -ir EABNE=9  # Assamble program not found
 declare -ir EFNR=10  # Flag has not been recognized
 
 ## Define ANSI colors
-if [ "$DRAGON_COLOR" == 'True' ]
+if [ "$DRAGON_COLOR" == 'true' ]
    then
        declare -r ANSI_BLUE='\033[1;34m'
        declare -r ANSI_DARK_GREEN='\033[0;32m'
@@ -93,48 +97,52 @@ Report bugs to: Jeancarlo Hidalgo U. <jeancahu@gmail.com>'
 
 if [ "$USER" == 'root' ] ; then echo_error 'You can\x27t use root privileges with this program' ; exit $EIUID ; fi
 
-FLAGS=$( echo $* | grep -o '^-[a-zCS]*' )
-FLAGS=$FLAGS$( echo $* | grep -o ' -[a-zCS]*' )
+FLAGS=$( grep -o '^-[a-zA-Z0-9]*' <<< "$*" )
+FLAGS=$FLAGS$( grep -o ' -[a-zA-Z0-9]*' <<< "$*" )
 
 ## Define flags/modes
 
-HELP=''      #false
-FILE=''      #false
-LST=''       #false
-OBJ=''       #false
-ASSEMBLY=''  #false
-BURN=''      #false
-RUN=''       #false
-SENDCHAR=''  #false
-SCHARLOOP='' #false
-INIT_TTY=''  #false
+declare -l HELP      #false
+declare -l FILE      #false
+declare -l LST       #false
+declare -l OBJ       #false
+declare -l ASSEMBLY  #false
+declare -l BURN      #false
+declare -l RUN       #false
+declare -l SENDCHAR  #false
+declare -l SCHARLOOP #false
+declare -l INIT_TTY  #false
 
 ## Define vars
 
-IFILE=''
-OFILE='' # File.asm name
-LFILE=''
+declare -x IFILE=''      # Input file path
+declare -x OFILE=''      # File.s19 name
+declare -x LFILE=''      # File.lst name
+
+declare -l SUB_COMM="$1" # Sub command
 
 ## Verify flags
 
-if [ "$( echo $FLAGS | grep -o 'h' | head -c 1 )" == "h" ]; then HELP=true      ; fi
-if [ "$( echo $FLAGS | grep -o 'f' | head -c 1 )" == "f" ]; then FILE=true      ; fi
-if [ "$( echo $FLAGS | grep -o 'l' | head -c 1 )" == "l" ]; then LST=true       ; fi
-if [ "$( echo $FLAGS | grep -o 'o' | head -c 1 )" == "o" ]; then OBJ=true       ; fi
-if [ "$( echo $FLAGS | grep -o 'g' | head -c 1 )" == "g" ]; then RUN=true       ; fi
-if [ "$( echo $FLAGS | grep -o 'a' | head -c 1 )" == "a" ]; then ASSEMBLY=true  ; fi
-if [ "$( echo $FLAGS | grep -o 'b' | head -c 1 )" == "b" ]; then BURN=true      ; fi
-if [ "$( echo $FLAGS | grep -o 'c' | head -c 1 )" == "c" ]; then SENDCHAR=true  ; fi
-if [ "$( echo $FLAGS | grep -o 'C' | head -c 1 )" == "C" ]; then SCHARLOOP=true ; fi
-if [ "$( echo $FLAGS | grep -o 'S' | head -c 1 )" == "S" ]; then INIT_TTY=true  ; fi
+if (( $( grep -c 'h' <<< "$FLAGS" ) )); then HELP=true      ; fi
+if (( $( grep -c 'f' <<< "$FLAGS" ) )); then FILE=true      ; fi
+if (( $( grep -c 'l' <<< "$FLAGS" ) )); then LST=true       ; fi
+if (( $( grep -c 'o' <<< "$FLAGS" ) )); then OBJ=true       ; fi
+if (( $( grep -c 'g' <<< "$FLAGS" ) )); then RUN=true       ; fi
+if (( $( grep -c 'a' <<< "$FLAGS" ) )); then ASSEMBLY=true  ; fi
+if (( $( grep -c 'b' <<< "$FLAGS" ) )); then BURN=true      ; fi
+if (( $( grep -c 'c' <<< "$FLAGS" ) )); then SENDCHAR=true  ; fi
+if (( $( grep -c 'C' <<< "$FLAGS" ) )); then SCHARLOOP=true ; fi
+if (( $( grep -c 'S' <<< "$FLAGS" ) )); then INIT_TTY=true  ; fi
 
-if [ "$( echo $FLAGS | sed 's/[hflogabcCS-]//g;s/ //g' )" ]
+if [ $( sed 's/[hflogabcCS-]//g;s/ //g' <<< "$FLAGS" ) ]
 then
     echo_error "The expression $( echo $FLAGS | sed 's/[hflogabcCS]//g;s/- //g' ) has not been recognized"
     exit $EFNR
+elif [ $( grep -o '\- ' <<< "$FLAGS" | head -c 1 ) ] || [ $( grep -o '\-$' <<< "$FLAGS" | head -c 1 ) ]
+then
+    echo_error 'There is a missing flag parameter'
+    exit $EFNR
 fi
-
-#echo $ASSEMBLY $BURN $RUN $FILE $OBJ $LST $HELP
 
 ## Child process:
 
@@ -153,7 +161,7 @@ then
 	    $ sudo chmod 0666 $DRAGON_SERIAL_PORT
 	    or
 	    $ sudo chown $USER $DRAGON_SERIAL_PORT
-       	other option is edit your UDEV rules to allow non-root access to serial devices permanently"
+       	other option is edit your UDEV rules to allow non-root access to fake serial devices permanently"
 	exit $ESPNWP
     else
 	:
@@ -239,9 +247,6 @@ then
 	OFILE=$( echo "$IFILE" | sed s/\.asm/\.s19/ )	
     fi
 
-    export IFILE
-    export OFILE
-    export LFILE    
     export LOGFILE=$( echo "$IFILE" | sed s/\.asm/\.log/ )    
 
     echo "$( date )" > $LOGFILE
@@ -272,7 +277,6 @@ to create a TTY serial device access'
     exit $ESPNC
 fi
 ##
-
 
 if [ $BURN ] && [ $OFILE ] # Load program on Dragon_12 board
 then
@@ -396,7 +400,7 @@ fi
 
 ## Main process, subcommands
 
-case $( echo $1 | tr 'A-Z' 'a-z' ) in
+case $SUB_COMM in
     simulator) # Open simulator
 	echo 'Opening simulator'
 	cd $DRAGON_SIMULATOR_PATH  # First go where is configuration file
