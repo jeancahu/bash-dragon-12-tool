@@ -179,8 +179,8 @@ fi
 
 if [ $FILE ] # FILE.asm
 then
-    IFILE="$( echo $* | grep -o '\-[a-z]\{0,\}f [\#0-9a-zA-Z/\.\_\ -]*\.asm' | cut --delimiter=' ' -f 2- )"
-    if [ -e "$IFILE" ]
+    IFILE="$( echo $* | grep -o '\-[a-z]\{0,\}f [\#0-9a-zA-Z/\.\_\ -]*\.asm' | sed 's/\\ / /g' | cut --delimiter=' ' -f 2- )"
+    if [ -e "${IFILE}" ]
     then
 	:
     else
@@ -188,12 +188,12 @@ then
 	exit $EACNF
     fi
 
-    echo -e "Input file: $ANSI_GREEN""$IFILE""$ANSI_NOCOLOR"
+    echo -e "Input file: $ANSI_GREEN""${IFILE}""$ANSI_NOCOLOR"
 fi
 
 if [ $LST ] # FILE.lst
 then
-    LFILE="$( echo $* | grep -o '\-[a-z]\{0,\}l [0-9a-zA-Z/\.\_\ -]*\.lst' | cut --delimiter=' ' -f 2- )"    
+    LFILE="$( echo $* | grep -o '\-[a-z]\{0,\}l [\#0-9a-zA-Z/\.\_\ -]*\.lst' | cut --delimiter=' ' -f 2- )"    
 
     if [ -z "$LFILE" ]
     then
@@ -209,7 +209,7 @@ fi
 
 if [ $OBJ ] # FILE.s19
 then
-    OFILE="$( echo $* | grep -o '\-[a-z]\{0,\}o [0-9a-zA-Z/\.\_\ -]*\.s19' | cut --delimiter=' ' -f 2- )"    
+    OFILE="$( echo $* | grep -o '\-[a-z]\{0,\}o [\#0-9a-zA-Z/\.\_\ -]*\.s19' | cut --delimiter=' ' -f 2- )"    
 
     if [ -z "$OFILE" ]
     then
@@ -238,29 +238,30 @@ then
 	:
     elif [ $OBJ ]
     then	
-	LFILE=$( sed s/\.asm/\.lst/ <<< "$IFILE" )
+	LFILE="$( sed s/\.asm/\.lst/ <<< "${IFILE}" )"
     elif [ $LST ]
     then
-	OFILE=$( sed s/\.asm/\.s19/ <<< "$IFILE" )	
+	OFILE="$( sed s/\.asm/\.s19/ <<< "${IFILE}" )"	
     else
-	LFILE=$( sed s/\.asm/\.lst/ <<< "$IFILE" )
-	OFILE=$( sed s/\.asm/\.s19/ <<< "$IFILE" )	
+	LFILE="$( sed s/\.asm/\.lst/ <<< "${IFILE}" )"
+	OFILE="$( sed s/\.asm/\.s19/ <<< "${IFILE}" )"	
     fi
 
-    export LOGFILE=$( sed s/\.asm/\.log/ <<< "$IFILE" )
+    export LOGFILE="$( sed s/\.asm/\.log/ <<< "${IFILE}" )"
 
-    echo "$( date )" > $LOGFILE
+    echo "$( date )" > "$LOGFILE"
     echo "
     Assembling with $DRAGON_AS"
 
     # Call WINE for assembly execution
-    nohup bash -c 'bash -c "WINEDEBUG=fixme-all wine $DRAGON_AS12_PATH/$DRAGON_AS $IFILE -L$LFILE -o$OFILE" >> $LOGFILE' > /dev/null 2>&1 < /dev/null
+    export WINE_EXE_PROC='WINEDEBUG=fixme-all wine "$DRAGON_AS12_PATH/$DRAGON_AS" "$IFILE" -L"$LFILE" -o"$OFILE" >> "$LOGFILE"'
+    nohup bash -c 'bash -c ${WINE_EXE_PROC@Q}' > /dev/null 2>&1 < /dev/null
 
     echo "
     $DRAGON_AS results log: "
-    cat $LOGFILE
+    cat "$LOGFILE"
 
-    if [ -z "$( grep 'Total errors: 0' $LOGFILE )" ] ; then exit $EASE ; fi
+    if [ -z "$( grep 'Total errors: 0' "$LOGFILE" )" ] ; then exit $EASE ; fi
     
 elif [ $ASSEMBLY ]
 then
@@ -278,18 +279,18 @@ to create a TTY serial device access'
 fi
 ##
 
-if [ $BURN ] && [ $OFILE ] # Load program on Dragon_12 board
+if [ $BURN ] && [ "$OFILE" ] # Load program on Dragon_12 board
 then
     echo -e "$ANSI_YELLOW
  $TL_COR$H_LINE0$TR_COR
- $V_LINE   $ANSI_GREEN"'Burn Dragon 12 board with '"$( rev <<< $OFILE | cut -f 1 --delimiter='/' | rev ) : $ANSI_YELLOW	                   $V_LINE
+ $V_LINE   $ANSI_GREEN"'Burn Dragon 12 board with '"$( rev <<< "$OFILE" | cut -f 1 --delimiter='/' | rev ) : $ANSI_YELLOW	                   $V_LINE
  $INTE_L$H_LINE1$INTE_R$ANSI_NOCOLOR"
     screen -S $DRAGON_SESSION_NAME -X stuff 'load\r'
-    TAMS19FILE=$( wc $OFILE | sed 's/ * / /g' | cut -f 2 --delimiter=' ' )    
+    TAMS19FILE=$( wc "$OFILE" | sed 's/ * / /g' | cut -f 2 --delimiter=' ' )    
     COUNTERS19=0
     DIRECTION_BEG=0
     DIRECTION_END=0
-    for LINES19 in $( cat $OFILE )
+    for LINES19 in $( cat "$OFILE" )
     do
 	COUNTERS19=$(( $COUNTERS19 + 1 ))
 	sleep $DRAGON_WAIT_SEND_LINE
@@ -381,7 +382,7 @@ fi
 if [ $SCHARLOOP ] # Send char to TTYUSBX/ttySX
 then
     CHAR=''
-    while true	  
+    while :
     do
     	echo -n "    Insert the string/char => "
 	read CHAR
