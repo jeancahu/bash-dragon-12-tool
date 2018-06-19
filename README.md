@@ -26,7 +26,7 @@ Remove script directory:
 ## How to use:
 | Flag | Interpretation |
 | ------ | ------ |
-| -h     | Show this message, help option. |
+| -h     | Help option. |
 |  -f <file.asm> | Indicate <file>.asm script input. |
 | -l		<file.lst> | Define list file out name. |
 | -o <file.s19> | Define object file out name. |
@@ -38,6 +38,30 @@ Remove script directory:
 | -S |	Open TTY serial access to communicate with board through Terminal|
 
 
+
 First, open a terminal to communicate over RS232 with the board.
 
     dragon_12.sh -S
+
+To generate the object file:
+
+	dragon_12.sh -af <name.asm> -o <name.s19>
+
+where <name.asm> is the source assembly code.
+To write the object file to the board:
+	
+	dragon_12.sh -bo <name.s19>
+	
+To send the value of the program counter (PC) and execute the program on the board:
+
+	dragon_12.sh -g XXXX
+
+where XXXX corresponds to the hexadecimal value in which the execution of the program begins.
+
+All previous steps can be executed on a single program call, by typing:
+
+
+	dragon_12.sh -af <name.asm> -o <name.s19> -b -g XXXX
+
+
+If the name of either the object file or the list file is not specified, the program will assume the same name as the source file and will proceed to change only the suffix.
