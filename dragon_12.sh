@@ -154,17 +154,18 @@ fi
 
 if [ $INIT_TTY ] # Init_TTY
 then
-    if [ -z "$( ls -al /dev/ttyUSB0 | grep crw.rw.rw. )" ] && [ -z "$( ls -al /dev/ttyUSB0 | grep -o $USER )" ]
+    if [ -r "$DRAGON_SERIAL_PORT" ] && [ -w "$DRAGON_SERIAL_PORT" ]
     then
+	:
+    else
 	echo_error "The program need write-read permissions on $DRAGON_SERIAL_PORT
 	You could do:
 	    $ sudo chmod 0666 $DRAGON_SERIAL_PORT
 	    or
 	    $ sudo chown $USER $DRAGON_SERIAL_PORT
-       	other option is edit your UDEV rules to allow non-root access to fake serial devices permanently"
+       	other option is edit your UDEV rules to allow non-root access to fake serial devices permanently
+	You can add your user to Unix-to-Unix devices group too"
 	exit $ESPNWP
-    else
-	:
     fi
     
     if [ -z "$( screen -ls | grep -v '^No' | grep -o $DRAGON_SESSION_NAME )" ]
@@ -408,7 +409,7 @@ case $SUB_COMM in
 	if [ -f $DRAGON_SIMULATOR ]
 	then
 	    which java && java -jar $DRAGON_SIMULATOR # Then execute simulator
-	    test $? -eq 0 || echo_warning 'Java no found'
+	    test $? -eq 0 || echo_warning 'Java not found'
 	fi
 	cd - # Return
 	;;
