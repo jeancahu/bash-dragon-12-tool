@@ -266,9 +266,8 @@ then
     Assembling with $DRAGON_AS"
 
     # Call WINE for assembly execution
-    WINE_EXE_PROC="wine $DRAGON_AS12_PATH/$DRAGON_AS $IFILE -L$LFILE -o$OFILE >> $LOGFILE"
-    bash -c "${WINE_EXE_PROC}" &>/dev/null
- 
+    ( WINEDEBUG=fixme-all wine $DRAGON_AS12_PATH/$DRAGON_AS $IFILE -L$LFILE -o$OFILE >> $LOGFILE ) &>/dev/null
+
     if (( $( wc -l $LOGFILE | cut -f 1 --delimiter=' ' ) -1 ))
     then
 	:
