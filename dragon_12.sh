@@ -424,25 +424,15 @@ then
     done
 fi
 
-if [ $OBJ ] && [ $SIM ]
+if [ $SIM ]
 then
-    echo 'Opening simulator'
-    if [ -f $DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR ]
-    then
-        which java && java -jar $DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR -s -b $OFILE # Then execute simulator
-        test $? -eq 0 || echo_warning 'Java not found'
-    fi
-fi
-
-if [ $SIM ] && [ $ASSEMBLY ] && [ $FILE ]
-then
-    OFILE="$( sed s/\.asm/\.s19/ <<< "${IFILE}" )"
-    echo $OFILE
     echo 'Opening simulator'
     if [ -f $DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR ]
     then
         which java && java -jar $DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR -s -b $OFILE &# Then execute simulator
         test $? -eq 0 || echo_warning 'Java not found'
+    else
+        echo "Error, simulator not found."
     fi
 fi
 
