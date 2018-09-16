@@ -46,20 +46,33 @@ then
     cd $DRAGON_AS12_PATH/
     wget 'http://dankohn.info/projects/68HC11/AsmIDE/asmide340.zip'
     if [ -f asmide340.zip ]
-       then
-	   unzip asmide340.zip
-	   rm asmide340.zip
-	   cd -
-	   if [ "$( md5sum $DRAGON_AS12_PATH/$DRAGON_AS | cut --delimiter=' ' -f 1 )" == '620981d0329aaae115dadb5203356e5b' ]
-	   then
-	       echo 'as12.exe installed in'" $DRAGON_AS12_PATH"
-	   else
-	       echo ''
-	   fi
+    then
+        unzip asmide340.zip
+        rm asmide340.zip
+        cd -
+        if [ "$( md5sum $DRAGON_AS12_PATH/$DRAGON_AS | cut --delimiter=' ' -f 1 )" == '620981d0329aaae115dadb5203356e5b' ]
+        then
+            echo 'as12.exe installed in'" $DRAGON_AS12_PATH"
+        else
+            echo ''
+        fi
     else
-	echo -e "Error \x27http://dankohn.info/projects/68HC11/AsmIDE/asmide340.zip\x27 not found" >&2
+        echo -e "Error \x27http://dankohn.info/projects/68HC11/AsmIDE/asmide340.zip\x27 not found" >&2
     fi
 fi
+
+if [ ! -d $DRAGON_SIMULATOR_PATH/ ]
+then
+    mkdir $DRAGON_SIMULATOR_PATH/
+else
+    echo ''
+fi
+
+while [ ! -f $DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR ]
+do
+    echo ''
+    read -p "Place the Micro.jar simulator file in $DRAGON_SIMULATOR_PATH  and press [ENTER]: "
+done
 
 echo 'Config finished.'
 
