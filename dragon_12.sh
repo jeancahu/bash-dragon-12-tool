@@ -270,7 +270,7 @@ then
 
     # Call WINE for assembly execution
 
-    ( WINEDEBUG=fixme-all wine $DRAGON_AS12_PATH/$DRAGON_AS $IFILE -L$LFILE -o$OFILE >> $LOGFILE ) &>/dev/null
+    nohup bash -c 'bash -c "WINEDEBUG=fixme-all wine $DRAGON_AS12_PATH/$DRAGON_AS $IFILE -L$LFILE -o$OFILE" >> $LOGFILE' > /dev/null 2>&1 < /dev/null
 
     if (( $( wc -l $LOGFILE | cut -f 1 --delimiter=' ' ) -1 ))
     then
@@ -285,18 +285,6 @@ then
     cat "$LOGFILE"
     echo ''
 
-
-    #if [ $SIM ] && [ $ASSEMBLY ] && [ $FILE ]
-    #then
-    #    OFILE="$( sed s/\.asm/\.s19/ <<< "${IFILE}" )"
-    #    echo $OFILE
-    #    echo 'Opening simulator'
-    #    if [ -f $DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR ]
-    #    then
-    #        which java && java -jar $DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR -s -b $OFILE &# Then execute simulator
-    #        test $? -eq 0 || echo_warning 'Java not found'
-    #    fi
-    #fi
 
     if [ -z "$( grep 'Total errors: 0' "$LOGFILE" )" ] ; then exit $EASE ; fi
 
@@ -457,20 +445,24 @@ then
         test $? -eq 0 || echo_warning 'Java not found'
     fi
 fi
-## Main process, subcommands
 
-#case $SUB_COMM in
-#    simulator) # Open simulator
-#	echo 'Opening simulator'
-#	cd $DRAGON_SIMULATOR_PATH  # First go where is configuration file
-#	if [ -f $DRAGON_SIMULATOR ]
-#	then
-#	    which java && java -jar $DRAGON_SIMULATOR # Then execute simulator
-#	    test $? -eq 0 || echo_warning 'Java not found'
-#	fi
-#	cd - # Return
-#
-#esac
+# Main process, subcommands
+
+case $SUB_COMM in
+    simulator) # Open simulator
+	echo 'Opening simulator'
+	cd $DRAGON_SIMULATOR_PATH  # First go where is configuration file
+	if [ -f $DRAGON_SIMULATOR ]
+	then
+	    which java && java -jar $DRAGON_SIMULATOR # Then execute simulator
+	    test $? -eq 0 || echo_warning 'Java no found'
+	fi
+	cd - # Return
+	;;
+    [!-]*)
+	echo_help
+	;;
+esac
 
 # All is done, and it have no errors
 exit 0
