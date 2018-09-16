@@ -25,6 +25,7 @@ declare -ir EIUID=7  # Invalid user ID
 declare -ir EASE=8   # Error syntax code
 declare -ir EABNE=9  # Assamble program not found
 declare -ir EFNR=10  # Flag has not been recognized
+declare -ir EWINE=11 # Wine dependencies error
 
 ## Define ANSI colors
 if [ "$DRAGON_COLOR" == 'true' ]
@@ -257,6 +258,16 @@ then
     # Call WINE for assembly execution
     export WINE_EXE_PROC='WINEDEBUG=fixme-all wine "$DRAGON_AS12_PATH/$DRAGON_AS" "$IFILE" -L"$LFILE" -o"$OFILE" >> "$LOGFILE"'
     nohup bash -c 'bash -c ${WINE_EXE_PROC@Q}' > /dev/null 2>&1 < /dev/null
+
+    if (( $( wc -l $LOGFILE | cut -f 1 --delimiter=' ' ) -1 ))
+    then
+	bash -c "${WINE_EXE_PROC}" &>/dev/null
+    fi
+    if (( $( wc -l $LOGFILE | cut -f 1 --delimiter=' ' ) -1 ))
+    then
+	echo_error 'Error. Wine is not working, resolve dependencies.'
+	exit $EWINE
+    fi
 
     echo "
     $DRAGON_AS results log: "
