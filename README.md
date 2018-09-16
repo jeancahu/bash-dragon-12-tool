@@ -19,7 +19,7 @@ Otherwise, add ~/.dragon\_12 directory to PATH environment variable.
 
 	PATH=$PATH:$HOME/.dragon_12
 
-Edit your assembler program PATH in dragon\_12\_vars\_config.sh file.
+And customize the dragon\_12\_vars\_config.sh file to your needs.
 
 
 ## Uninstall:
@@ -84,10 +84,10 @@ If you want to run the .s19 with the simulator you have three options:
 
 This will run the object file named after the .asm.
 
-3. If you want to bring the object file a different name, then type.
+3. If you want to bring the object file a different name.
 
         dragon12.sh -saf <name.asm> -o <name.s19>
 
-If you just want to run the simulator, you can type.
+If you just want to run the simulator, you can type:
 
     dragon12.sh simulator
