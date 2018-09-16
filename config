@@ -70,7 +70,7 @@ fi
 
 while [ ! -f $DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR ]
 do
-    echo ''
+    echo ' '
     read -p "Place the Micro.jar simulator file in $DRAGON_SIMULATOR_PATH  and press [ENTER]: "
 done
 
