@@ -261,10 +261,15 @@ then
 
     if (( $( wc -l $LOGFILE | cut -f 1 --delimiter=' ' ) -1 ))
     then
+	:
+    else
 	bash -c "${WINE_EXE_PROC}" &>/dev/null
     fi
+
     if (( $( wc -l $LOGFILE | cut -f 1 --delimiter=' ' ) -1 ))
     then
+	:
+    else
 	echo_error 'Error. Wine is not working, resolve dependencies.'
 	exit $EWINE
     fi
