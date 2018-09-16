@@ -5,7 +5,7 @@
 #
 # Jeancarlo Hidalgo U. <jeancahu@gmail.com>
 
-# Depends: screen, wine, as12.exe
+# Depends: screen, wine, wine-mono, wine_gecko, as12.exe
 
 ## Declare configuration variables
 
@@ -26,6 +26,7 @@ declare -ir EASE=8   # Error syntax code
 declare -ir EABNE=9  # Assamble program not found
 declare -ir EFNR=10  # Flag has not been recognized
 declare -ir EWINE=11 # Wine dependencies error
+declare -ir ESNF=12  # Screen dependency missed
 
 ## Define ANSI colors
 if [ "$DRAGON_COLOR" == 'true' ]
@@ -121,6 +122,7 @@ declare -l INIT_TTY  #false
 declare -x IFILE=''      # Input file path
 declare -x OFILE=''      # File.s19 name
 declare -x LFILE=''      # File.lst name
+declare -x LOGFILE=''    # Log file name
 
 declare -l SUB_COMM="$1" # Sub command
 
@@ -158,6 +160,14 @@ fi
 
 if [ $INIT_TTY ] # Init_TTY
 then
+    if which screen &>/dev/null
+    then
+	:
+    else
+	echo_error '\x27screen\x27 dependency is missed'
+	exit $ESNF
+    fi
+
     if [ -r "$DRAGON_SERIAL_PORT" ] && [ -w "$DRAGON_SERIAL_PORT" ]
     then
 	:
@@ -252,23 +262,15 @@ then
 	OFILE="$( sed s/\.asm/\.s19/ <<< "${IFILE}" )"
     fi
 
-    export LOGFILE="$( sed s/\.asm/\.log/ <<< "${IFILE}" )"
-    export WINEDEBUG=fixme-all
+    LOGFILE="$( sed s/\.asm/\.log/ <<< "${IFILE}" )"
 
-    echo "$( date )" > "$LOGFILE"
+    echo "$( date )" > $LOGFILE
     echo "
     Assembling with $DRAGON_AS"
 
     # Call WINE for assembly execution
-    export WINE_EXE_PROC="wine $DRAGON_AS12_PATH/$DRAGON_AS $IFILE -L$LFILE -o$OFILE  >> $LOGFILE"
-    bash -c '${WINE_EXE_PROC}' > /dev/null 2>&1 < /dev/null
 
-    if (( $( wc -l $LOGFILE | cut -f 1 --delimiter=' ' ) -1 ))
-    then
-	:
-    else
-	bash -c "${WINE_EXE_PROC}" &>/dev/null
-    fi
+    ( WINEDEBUG=fixme-all wine $DRAGON_AS12_PATH/$DRAGON_AS $IFILE -L$LFILE -o$OFILE >> $LOGFILE ) &>/dev/null
 
     if (( $( wc -l $LOGFILE | cut -f 1 --delimiter=' ' ) -1 ))
     then
