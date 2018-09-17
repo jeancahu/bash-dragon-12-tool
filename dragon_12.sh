@@ -27,6 +27,7 @@ declare -ir EABNE=9  # Assamble program not found
 declare -ir EFNR=10  # Flag has not been recognized
 declare -ir EWINE=11 # Wine dependencies error
 declare -ir ESNF=12  # Screen dependency missed
+declare -ir EMSNF=13 # Simulator not found
 
 ## Define ANSI colors
 if [ "$DRAGON_COLOR" == 'true' ]
@@ -432,7 +433,8 @@ then
         which java && java -jar $DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR -s -b $OFILE &# Then execute simulator
         test $? -eq 0 || echo_warning 'Java not found'
     else
-        echo "Error, simulator not found."
+        echo_error "Error, simulator \x27$DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR\x27 not found."
+	exit $EMSNF
     fi
 fi
 
