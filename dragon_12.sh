@@ -61,23 +61,23 @@ declare -r V_LINE='\u2503'
 
 function echo_error ()
 {
-    echo -e "$ANSI_RED""$1""$ANSI_NOCOLOR" >&2
+    echo -e "$ANSI_RED""ERROR: $1""$ANSI_NOCOLOR" >&2
 }
 
 function echo_warning ()
 {
-    echo -e "$ANSI_YELLOW""$1""$ANSI_NOCOLOR" >&2
+    echo -e "$ANSI_YELLOW""WARNING: $1""$ANSI_NOCOLOR" >&2
 }
 
 function echo_help ()
 {
-    echo 'Usage: '"$( echo $0 | grep -o [a-z0-9A-Z_\.-]*$ )"' [OPTIONS] [ARG] ... [OPTIONS] [ARG]
+    echo 'Usage: '"$( basename $0 )"' [OPTIONS] [ARG] ... [OPTIONS] [ARG]
     Flags interpretation:
 
     -h				Show this message, help option
     -f		<file.asm>   	Indicate <file>.asm script input
-    -l		<file.lst>	Define list file out name
-    -o		<file.s19>	Define objet file out name
+    -l		<file.lst>	Define list file name
+    -o		<file.s19>	Define objet file name
     -a				Use asm12 to create the object file
     -b				Send the object file to board
     -g		<XXXX>		Indicate program counter initial value and run program on board, 16b HEX
@@ -91,7 +91,8 @@ function echo_help ()
 					      S	      Space
 					      R	      CarrieReturn
 					      E	      Exit loop
-    -s		<file.s19>	Load .s19 file to simulate with
+    -s				Load .s19 file to simulate with. Use -o <file.s19> or/and -af <file.asm> to
+    				indicate the object file input
     -S				Open TTY serial access to communicate with board through Terminal
 
 Report bugs to: Jeancarlo Hidalgo U. <jeancahu@gmail.com>'
@@ -143,7 +144,7 @@ if (( $( grep -c 'S' <<< "$FLAGS" ) )); then INIT_TTY=true  ; fi
 
 if [ $( sed 's/[hflogabcCsS-]//g;s/ //g' <<< "$FLAGS" ) ]
 then
-    echo_error "The expression $( sed 's/[hflogabcCS]//g;s/- //g' <<< $FLAGS ) has not been recognized"
+    echo_error "The expression $( sed 's/[hflogabcCsS]//g;s/- //g' <<< $FLAGS ) has not been recognized"
     exit $EFNR
 elif [ $( grep -o '\- ' <<< "$FLAGS" | head -c 1 ) ] || [ $( grep -o '\-$' <<< "$FLAGS" | head -c 1 ) ]
 then
@@ -200,7 +201,8 @@ then
     then
 	:
     else
-	echo_error 'File don\x27t exist or format is not correct, need to have \x27.asm\x27 suffix'
+	if [ "${IFILE}" ]; then IFILE="${IFILE} "; fi
+	echo_error 'File '"$IFILE"'don\x27t exist or format is not correct, need to have \x27.asm\x27 suffix'
 	exit $EACNF
     fi
 
@@ -218,9 +220,7 @@ then
     else
 	:
     fi
-
     echo -e "List file name: $ANSI_GREEN""$LFILE""$ANSI_NOCOLOR"
-
 fi
 
 if [ $OBJ ] # FILE.s19
@@ -277,7 +277,7 @@ then
     then
 	:
     else
-	echo_error 'Error. Wine is not working, resolve dependencies.'
+	echo_error 'Wine is not working, resolve dependencies.'
 	exit $EWINE
     fi
 
@@ -428,12 +428,19 @@ fi
 if [ $SIM ]
 then
     echo 'Opening simulator'
+    if [ "$OFILE" ]
+    then
+	:
+    else
+	echo_warning "Warning, no object file specified with -o <file.s19> or -af <file.asm>"
+    fi
+
     if [ -f $DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR ]
     then
-        which java && java -jar $DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR -s -b $OFILE &# Then execute simulator
+        which java &>/dev/null && java -jar $DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR -s -b $OFILE &# Then execute simulator
         test $? -eq 0 || echo_warning 'Java not found'
     else
-        echo_error "Error, simulator \x27$DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR\x27 not found."
+        echo_error "Simulator \x27$DRAGON_SIMULATOR_PATH/$DRAGON_SIMULATOR\x27 not found."
 	exit $EMSNF
     fi
 fi
@@ -446,7 +453,7 @@ case $SUB_COMM in
 	cd $DRAGON_SIMULATOR_PATH  # First go where is configuration file
 	if [ -f $DRAGON_SIMULATOR ]
 	then
-	    which java && java -jar $DRAGON_SIMULATOR # Then execute simulator
+	    which java &>/dev/null && java -jar $DRAGON_SIMULATOR # Then execute simulator
 	    test $? -eq 0 || echo_warning 'Java no found'
 	fi
 	cd - # Return
